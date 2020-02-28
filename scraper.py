@@ -14,7 +14,7 @@ def main():
     os.environ['SCRAPERWIKI_DATABASE_NAME'] = 'sqlite:///data.sqlite'
 
     today = datetime.date.today()
-    ano_inicial = 2020
+    ano_inicial = 2017
     ano_final = int(today.strftime('%Y'))
     mes_final = int(today.strftime('%m'))
 
@@ -55,7 +55,7 @@ def processa_arquivo(mes, ano):
     df['DT_REF'] = df['DT_COMPTC']
 
     for row in df.to_dict('records'):
-        scraperwiki.sqlite.save(unique_keys=['CO_PRD', 'DT_REF'], data=row)
+        scraperwiki.sqlite.save(unique_keys=df.columns.values.tolist(), data=row)
 
     print('{} Registros importados com sucesso', len(df))
     return True
