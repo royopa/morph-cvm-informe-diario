@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import datetime
+os.environ['SCRAPERWIKI_DATABASE_NAME'] = 'sqlite:///data.sqlite'
 import scraperwiki
 import pandas as pd
 import shutil
