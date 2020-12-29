@@ -24,6 +24,7 @@ def main():
             mes = str(mes).zfill(2)
 
             processa_arquivo(mes, ano)
+
     return True
 
 
@@ -52,17 +53,37 @@ def processa_arquivo(mes, ano):
         df['DT_COMPTC'], errors='coerce').dt.strftime('%Y-%m-%d')
     df['DT_REF'] = df['DT_COMPTC']
 
-    engine = create_engine('sqlite:///data.sqlite', echo=True)
+    engine = create_engine('sqlite:///data.sqlite', echo=False)
     sqlite_connection = engine.connect()
-    print('Importando usando pandas to_sql')
-    df.to_sql(
-        'swdata',
-        sqlite_connection,
-        if_exists='append',
-        index=False
+
+    # lê a tabela do banco para juntar os dados quando necessário
+    df_db = pd.read_sql_table('swdata', sqlite_connection)
+
+    # faz o concatenar com a base do banco
+    df_keys = pd.concat([df_db, df], keys=['CO_PRD', 'DT_REF'])
+
+    # remove duplicados
+    df_keys.drop_duplicates(
+        keep='last',
+        inplace=True,
+        ignore_index=True,
+        subset=['CO_PRD', 'DT_REF']
     )
 
-    print('{} Registros importados com sucesso', len(df))
+    # retira os dataframes da memoria
+    del df_db
+    del df
+
+    print('Importando usando pandas to_sql')
+    df_keys.to_sql(
+        'swdata',
+        sqlite_connection,
+        if_exists='replace',
+        index=False,
+        chunksize=50000
+    )
+
+    print(f'{len(df_keys)} Registros importados com sucesso')
     return True
 
 
